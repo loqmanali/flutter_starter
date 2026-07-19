@@ -1,4 +1,3 @@
-import 'package:api_kit/api_kit.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show ProviderException;
 import 'package:flutter_starter/core/di/infrastructure_providers.dart';
@@ -140,18 +139,10 @@ void main() {
       expect(value, isNull);
     });
 
-    test('api clients construct once the runtime is configured', () async {
-      ApiKitRuntime.use(baseUrl: 'https://api.test.local');
-      await AppStorage.initializeWithAdapter(FakeStorageAdapter());
-      addTearDown(AppStorage.resetForTesting);
-
-      final container = ProviderContainer(
-        overrides: [appStorageProvider.overrideWithValue(AppStorage.instance)],
-      );
-      addTearDown(container.dispose);
-
-      expect(container.read(apiClientProvider), isA<ApiClient>());
-      expect(container.read(publicApiClientProvider), isA<ApiClient>());
-    });
+    // The 'api clients construct once the runtime is configured' test used
+    // to live here. It moved to test/core/network/api_kit_setup_test.dart
+    // because it calls ApiKitRuntime.use(...), which has no reset mechanism
+    // and permanently mutates process-wide static state for the rest of
+    // this isolate — see that file for the full explanation.
   });
 }
