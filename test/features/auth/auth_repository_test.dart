@@ -58,7 +58,29 @@ void main() {
       );
 
       expect(tokens.accessToken, 'a-token');
+      expect(tokens.refreshToken, 'r-token');
     });
+
+    test(
+      'falls back to the access token when no refresh token is returned',
+      () async {
+        final repository = AuthRepository(
+          _StubApiClient(
+            response: {
+              'data': {'access_token': 'a-token'},
+            },
+          ),
+        );
+
+        final tokens = await repository.signIn(
+          email: 'user@example.com',
+          password: 'secret',
+        );
+
+        expect(tokens.accessToken, 'a-token');
+        expect(tokens.refreshToken, 'a-token');
+      },
+    );
 
     test('converts an ApiException into a Failure', () async {
       final repository = AuthRepository(
@@ -85,5 +107,66 @@ void main() {
         throwsA(isA<ServerFailure>()),
       );
     });
+
+    test(
+      'throws ServerFailure when the response is not a Map at all',
+      () async {
+        final repository = AuthRepository(
+          _StubApiClient(response: 'not-a-map'),
+        );
+
+        await expectLater(
+          repository.signIn(email: 'user@example.com', password: 'secret'),
+          throwsA(isA<ServerFailure>()),
+        );
+      },
+    );
+
+    test('throws ServerFailure when data is present but not a Map', () async {
+      final repository = AuthRepository(
+        _StubApiClient(response: {'data': 'not-a-map'}),
+      );
+
+      await expectLater(
+        repository.signIn(email: 'user@example.com', password: 'secret'),
+        throwsA(isA<ServerFailure>()),
+      );
+    });
+
+    test(
+      'throws ServerFailure when the access token is an empty string',
+      () async {
+        final repository = AuthRepository(
+          _StubApiClient(
+            response: {
+              'data': {'access_token': '', 'refresh_token': 'r-token'},
+            },
+          ),
+        );
+
+        await expectLater(
+          repository.signIn(email: 'user@example.com', password: 'secret'),
+          throwsA(isA<ServerFailure>()),
+        );
+      },
+    );
+
+    test(
+      'throws ServerFailure when the access token has the wrong type',
+      () async {
+        final repository = AuthRepository(
+          _StubApiClient(
+            response: {
+              'data': {'access_token': 12345, 'refresh_token': 'r-token'},
+            },
+          ),
+        );
+
+        await expectLater(
+          repository.signIn(email: 'user@example.com', password: 'secret'),
+          throwsA(isA<ServerFailure>()),
+        );
+      },
+    );
   });
 }

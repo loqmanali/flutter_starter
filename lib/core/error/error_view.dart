@@ -14,11 +14,16 @@ class ErrorView extends StatelessWidget {
   final Object error;
   final VoidCallback? onRetry;
 
+  /// The single derivation of a user-facing message from an arbitrary error.
+  ///
+  /// Shared with anything that surfaces errors outside this widget (e.g. a
+  /// `SnackBar`) so the ternary lives in exactly one place.
+  static String messageFor(Object error) =>
+      error is Failure ? error.message : L10n.errorGeneric;
+
   @override
   Widget build(BuildContext context) {
-    final message = error is Failure
-        ? (error as Failure).message
-        : L10n.errorGeneric;
+    final message = messageFor(error);
 
     return Padding(
       padding: const EdgeInsets.all(WidgetKitTokens.spaceLg),

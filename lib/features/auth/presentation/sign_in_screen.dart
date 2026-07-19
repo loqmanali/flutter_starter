@@ -1,8 +1,8 @@
 import 'dart:async';
 
-import 'package:api_kit/api_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_starter/core/error/error_view.dart';
 import 'package:flutter_starter/core/localization/localization.dart';
 import 'package:flutter_starter/features/auth/presentation/auth_providers.dart';
 import 'package:widget_kit/widget_kit.dart';
@@ -47,7 +47,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
       if (error != null) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text(_message(error))));
+        ).showSnackBar(SnackBar(content: Text(ErrorView.messageFor(error))));
       }
     });
 
@@ -110,7 +110,4 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
       ),
     );
   }
-
-  String _message(Object error) =>
-      error is Failure ? error.message : L10n.errorGeneric;
 }

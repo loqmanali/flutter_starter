@@ -1,3 +1,4 @@
+import 'package:api_kit/api_kit.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_starter/core/di/infrastructure_providers.dart';
@@ -32,13 +33,28 @@ class AuthSessionNotifier extends Notifier<AuthSession> {
   }
 
   /// Persists a token pair and flips the session on.
+  ///
+  /// Checks the write's result: a sign-in whose token can't be persisted
+  /// must not look successful. Left unchecked, the in-memory session would
+  /// say "signed in" while disk still says otherwise, and the next cold
+  /// start would silently bounce the user back to sign-in with no
+  /// diagnostic trail. Throwing here (before flipping [state]) instead
+  /// surfaces it as a real sign-in failure through the same
+  /// `AsyncValue.guard` that already wraps [onAuthenticated]'s caller.
   Future<void> onAuthenticated({
     required String accessToken,
     required String refreshToken,
   }) async {
-    await ref
+    final wasSaved = await ref
         .read(appStorageProvider)
         .saveAuthTokens(accessToken: accessToken, refreshToken: refreshToken);
+    if (!wasSaved) {
+      throw const CacheFailure(
+        message:
+            'Sign-in succeeded but the session could not be saved. '
+            'Please try again.',
+      );
+    }
     state = const AuthSession(isSignedIn: true);
   }
 
