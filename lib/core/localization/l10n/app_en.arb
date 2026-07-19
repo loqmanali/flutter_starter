@@ -1,0 +1,16 @@
+{
+  "@@locale": "en",
+  "appTitle": "Flutter Starter",
+  "signIn": "Sign in",
+  "signOut": "Sign out",
+  "email": "Email",
+  "password": "Password",
+  "home": "Home",
+  "settings": "Settings",
+  "language": "Language",
+  "themeMode": "Theme",
+  "retry": "Retry",
+  "fieldRequired": "This field is required",
+  "errorGeneric": "Something went wrong. Please try again.",
+  "sessionExpired": "Your session has expired. Please sign in again."
+}
