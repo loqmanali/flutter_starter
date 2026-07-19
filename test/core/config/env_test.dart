@@ -23,4 +23,93 @@ void main() {
       expect(exception.toString(), contains('BASE_URL is required'));
     });
   });
+
+  group('Env.validateConfig', () {
+    test('throws EnvException when flavor does not match expectedFlavor', () {
+      expect(
+        () => Env.validateConfig(
+          flavor: 'dev',
+          expectedFlavor: 'production',
+          baseUrl: 'https://api.example.com',
+          appName: 'Example',
+        ),
+        throwsA(
+          isA<EnvException>().having(
+            (e) => e.message,
+            'message',
+            contains('BUILD_ENV'),
+          ),
+        ),
+      );
+    });
+
+    test('throws EnvException when baseUrl is empty', () {
+      expect(
+        () => Env.validateConfig(
+          flavor: 'dev',
+          expectedFlavor: 'dev',
+          baseUrl: '',
+          appName: 'Example',
+        ),
+        throwsA(
+          isA<EnvException>().having(
+            (e) => e.message,
+            'message',
+            contains('BASE_URL is required'),
+          ),
+        ),
+      );
+    });
+
+    test(
+      'throws EnvException when baseUrl is not an absolute http/https URL',
+      () {
+        expect(
+          () => Env.validateConfig(
+            flavor: 'dev',
+            expectedFlavor: 'dev',
+            baseUrl: 'api.example.com',
+            appName: 'Example',
+          ),
+          throwsA(
+            isA<EnvException>().having(
+              (e) => e.message,
+              'message',
+              contains('must be an absolute URL'),
+            ),
+          ),
+        );
+      },
+    );
+
+    test('throws EnvException when appName is empty', () {
+      expect(
+        () => Env.validateConfig(
+          flavor: 'dev',
+          expectedFlavor: 'dev',
+          baseUrl: 'https://api.example.com',
+          appName: '',
+        ),
+        throwsA(
+          isA<EnvException>().having(
+            (e) => e.message,
+            'message',
+            contains('APP_NAME is required'),
+          ),
+        ),
+      );
+    });
+
+    test('returns normally when all values are valid', () {
+      expect(
+        () => Env.validateConfig(
+          flavor: 'dev',
+          expectedFlavor: 'dev',
+          baseUrl: 'https://api.example.com',
+          appName: 'Example',
+        ),
+        returnsNormally,
+      );
+    });
+  });
 }

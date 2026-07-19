@@ -27,11 +27,25 @@ abstract final class Env {
     defaultValue: 'info',
   );
 
-  /// Validates configuration and applies it to [AppLogger].
+  /// Runs the four configuration guards against explicit values.
   ///
-  /// Throws [EnvException] if the running entrypoint disagrees with the
-  /// compiled flavor, or if a required key is absent.
-  static void load({required String expectedFlavor}) {
+  /// Separated from [load] so the guards are testable at all: [flavor],
+  /// [baseUrl], and [appName] are normally `String.fromEnvironment`
+  /// compile-time constants that are always `''` under `flutter test`, so a
+  /// test calling [load] can only ever exercise the flavor-mismatch branch.
+  /// Passing the values in as parameters lets tests drive every branch,
+  /// including the success path. This method performs no side effects (no
+  /// logging) — that stays in [load].
+  ///
+  /// Throws [EnvException] if [flavor] does not match [expectedFlavor], if
+  /// [baseUrl] is empty or not an absolute http/https URL, or if [appName]
+  /// is empty.
+  static void validateConfig({
+    required String flavor,
+    required String expectedFlavor,
+    required String baseUrl,
+    required String appName,
+  }) {
     if (flavor != expectedFlavor) {
       throw EnvException(
         'BUILD_ENV is "$flavor" but this entrypoint expects "$expectedFlavor". '
@@ -42,13 +56,24 @@ abstract final class Env {
       throw const EnvException('BASE_URL is required and was empty.');
     }
     if (!baseUrl.startsWith('https://') && !baseUrl.startsWith('http://')) {
-      throw const EnvException(
-        'BASE_URL must be an absolute URL, got "$baseUrl".',
-      );
+      throw EnvException('BASE_URL must be an absolute URL, got "$baseUrl".');
     }
     if (appName.isEmpty) {
       throw const EnvException('APP_NAME is required and was empty.');
     }
+  }
+
+  /// Validates configuration and applies it to [AppLogger].
+  ///
+  /// Throws [EnvException] if the running entrypoint disagrees with the
+  /// compiled flavor, or if a required key is absent.
+  static void load({required String expectedFlavor}) {
+    validateConfig(
+      flavor: flavor,
+      expectedFlavor: expectedFlavor,
+      baseUrl: baseUrl,
+      appName: appName,
+    );
 
     AppLogger.setEnabled(logEnabled);
     AppLogger.setLevel(_parseLevel(logLevel));
