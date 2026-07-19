@@ -1,9 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_starter/app.dart';
 import 'package:flutter_starter/core/di/infrastructure_providers.dart';
+import 'package:flutter_starter/core/navigation/app_router.dart';
 import 'package:flutter_starter/core/navigation/auth_session.dart';
+import 'package:flutter_starter/core/navigation/route_builders.dart';
+import 'package:flutter_starter/core/navigation/route_paths.dart';
 import 'package:flutter_starter/features/auth/presentation/sign_in_screen.dart';
 import 'package:flutter_starter/features/home/presentation/home_screen.dart';
+import 'package:flutter_starter/features/settings/presentation/settings_screen.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:storage_kit/storage_kit.dart';
 
@@ -33,13 +37,20 @@ import 'core/di/di_graph_test.dart' show FakeStorageAdapter;
 /// nested scope is transparent rather than dangerous. The guard against the
 /// real hazard is the doc comment on [App] plus review of `bootstrap()`.
 void main() {
-  Future<ProviderContainer> pumpSignedInApp(WidgetTester tester) async {
-    // Seed the access token before AppStorage initializes, so
-    // AuthSessionNotifier.build() (which reads the sync-cached token) sees a
-    // signed-in session from the very first read — same as a real cold
-    // start with a previously-persisted token.
+  // Shared by every test below: boots the real [App] under a single real
+  // container, seeding a signed-in or signed-out session up front.
+  Future<ProviderContainer> pumpApp(
+    WidgetTester tester, {
+    required bool signedIn,
+  }) async {
+    // Seed the access token (or don't) before AppStorage initializes, so
+    // AuthSessionNotifier.build() (which reads the sync-cached token) sees
+    // the intended session from the very first read — same as a real cold
+    // start with (or without) a previously-persisted token.
     final adapter = FakeStorageAdapter();
-    await adapter.setString(StorageKeys.accessToken, 'seeded-access-token');
+    if (signedIn) {
+      await adapter.setString(StorageKeys.accessToken, 'seeded-access-token');
+    }
     await AppStorage.initializeWithAdapter(adapter);
     addTearDown(AppStorage.resetForTesting);
 
@@ -58,7 +69,7 @@ void main() {
   testWidgets('signing out redirects from the home screen to sign-in', (
     tester,
   ) async {
-    final container = await pumpSignedInApp(tester);
+    final container = await pumpApp(tester, signedIn: true);
 
     expect(find.byType(HomeScreen), findsOneWidget);
     expect(find.byType(SignInScreen), findsNothing);
@@ -70,4 +81,39 @@ void main() {
     expect(find.byType(SignInScreen), findsOneWidget);
     expect(find.byType(HomeScreen), findsNothing);
   });
+
+  // Regression coverage for a notification tap: buildNotifyConfig's
+  // onTapRoute closure (wired in app_bootstrap.dart) calls exactly
+  // `container.read(goRouterProvider).go(route)` with the `route` value
+  // taken verbatim from the push payload — an unauthenticated, unvalidated
+  // string. These two tests drive that identical call so a regression in
+  // AuthGuard or the router's errorBuilder is caught here rather than only
+  // discovered by a crafted push payload in the wild.
+  testWidgets('a notification tap naming a protected route while signed out is '
+      'redirected to sign-in instead of rendering it', (tester) async {
+    final container = await pumpApp(tester, signedIn: false);
+
+    expect(find.byType(SignInScreen), findsOneWidget);
+
+    container.read(goRouterProvider).go(RoutePaths.settings);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(SignInScreen), findsOneWidget);
+    expect(find.byType(SettingsScreen), findsNothing);
+  });
+
+  testWidgets(
+    'a notification tap naming a nonexistent route renders NotFoundScreen '
+    'instead of throwing',
+    (tester) async {
+      final container = await pumpApp(tester, signedIn: true);
+
+      expect(find.byType(HomeScreen), findsOneWidget);
+
+      container.read(goRouterProvider).go('/does-not-exist');
+      await tester.pumpAndSettle();
+
+      expect(find.byType(NotFoundScreen), findsOneWidget);
+    },
+  );
 }
