@@ -4,6 +4,7 @@ import 'package:flutter_starter/app.dart';
 import 'package:flutter_starter/core/bootstrap/app_initialization_error_screen.dart';
 import 'package:flutter_starter/core/config/env.dart';
 import 'package:flutter_starter/core/di/infrastructure_providers.dart';
+import 'package:flutter_starter/core/network/api_kit_setup.dart';
 import 'package:logging_kit/logging_kit.dart';
 import 'package:storage_kit/storage_kit.dart';
 
@@ -24,6 +25,12 @@ Future<void> bootstrap(String flavor) async {
   AppLogger.info('Booting ${Env.appName} (${Env.flavor})');
 
   await AppStorage.initialize();
+
+  configureApiKit(
+    storage: AppStorage.instance,
+    onLogout: () async => AppStorage.instance.clearAuthData(),
+    languageCode: () async => await AppStorage.instance.getLocale() ?? 'en',
+  );
 
   runApp(
     ProviderScope(

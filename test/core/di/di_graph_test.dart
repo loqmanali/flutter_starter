@@ -1,3 +1,4 @@
+import 'package:api_kit/api_kit.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show ProviderException;
 import 'package:flutter_starter/core/di/infrastructure_providers.dart';
@@ -5,7 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:storage_kit/storage_kit.dart';
 
 /// In-memory adapter so the graph can be built without platform channels.
-class _FakeStorageAdapter implements StorageAdapter {
+class FakeStorageAdapter implements StorageAdapter {
   final Map<String, Object?> _values = <String, Object?>{};
 
   @override
@@ -104,7 +105,7 @@ void main() {
     });
 
     test('graph constructs when the async seam is overridden', () async {
-      await AppStorage.initializeWithAdapter(_FakeStorageAdapter());
+      await AppStorage.initializeWithAdapter(FakeStorageAdapter());
       addTearDown(AppStorage.resetForTesting);
 
       final injected = AppStorage.instance;
@@ -128,7 +129,7 @@ void main() {
 
     test('each test gets a fresh AppStorage instance (regression guard for the '
         'silent re-init no-op)', () async {
-      await AppStorage.initializeWithAdapter(_FakeStorageAdapter());
+      await AppStorage.initializeWithAdapter(FakeStorageAdapter());
       addTearDown(AppStorage.resetForTesting);
 
       // AppStorage.initializeWithAdapter() early-returns if a singleton
@@ -137,6 +138,20 @@ void main() {
       // adapter — complete with its 'probe' value from the test above.
       final value = await AppStorage.instance.getString('probe');
       expect(value, isNull);
+    });
+
+    test('api clients construct once the runtime is configured', () async {
+      ApiKitRuntime.use(baseUrl: 'https://api.test.local');
+      await AppStorage.initializeWithAdapter(FakeStorageAdapter());
+      addTearDown(AppStorage.resetForTesting);
+
+      final container = ProviderContainer(
+        overrides: [appStorageProvider.overrideWithValue(AppStorage.instance)],
+      );
+      addTearDown(container.dispose);
+
+      expect(container.read(apiClientProvider), isA<ApiClient>());
+      expect(container.read(publicApiClientProvider), isA<ApiClient>());
     });
   });
 }

@@ -1,3 +1,4 @@
+import 'package:api_kit/api_kit.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:storage_kit/storage_kit.dart';
 
@@ -13,4 +14,14 @@ final appStorageProvider = Provider<AppStorage>(
     'appStorageProvider must be overridden in bootstrap() with an '
     'already-initialized AppStorage instance.',
   ),
+);
+
+/// Client for endpoints requiring the user's bearer token.
+final apiClientProvider = Provider<ApiClient>(
+  (ref) => DioApiClient.authenticated(),
+);
+
+/// Client for endpoints that take no auth (sign-in, public config).
+final publicApiClientProvider = Provider<ApiClient>(
+  (ref) => DioApiClient.public(),
 );
