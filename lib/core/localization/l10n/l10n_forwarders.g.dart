@@ -9,26 +9,28 @@ abstract final class L10n {
   static Locale? _currentLocale;
 
   /// Caches the active [AppLocalizations]. Call from a widget
-  /// high in the tree — [L10nListener] does this for you.
+  /// high in the tree, e.g. from the builder callback in
+  /// lib/app.dart.
   static void init(BuildContext context) {
     _current = AppLocalizations.of(context);
     _currentLocale = Localizations.localeOf(context);
   }
 
-  static String get currentLanguageCode => _currentLocale?.languageCode ?? 'en';
+  static String get currentLanguageCode => _locale.languageCode;
   static bool get isArabic => currentLanguageCode == 'ar';
   static bool get isEnglish => currentLanguageCode == 'en';
 
-  static AppLocalizations get _tr {
-    final value = _current;
-    if (value == null) {
-      throw StateError(
-        'L10n used before init(). Ensure L10nListener is '
-        'mounted above the widget that reads it.',
-      );
-    }
-    return value;
+  static Never _notInitialized() {
+    throw StateError(
+      'L10n used before init(). Call L10n.init(context) high '
+      'in the widget tree, e.g. from the builder callback in '
+      'lib/app.dart.',
+    );
   }
+
+  static Locale get _locale => _currentLocale ?? _notInitialized();
+
+  static AppLocalizations get _tr => _current ?? _notInitialized();
 
   static String get appTitle => _tr.appTitle;
   static String get signIn => _tr.signIn;
