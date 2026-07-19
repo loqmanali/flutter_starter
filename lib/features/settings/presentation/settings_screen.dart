@@ -9,6 +9,12 @@ import 'package:widget_kit/widget_kit.dart';
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
+  static String _labelFor(ThemeMode mode) => switch (mode) {
+    ThemeMode.system => L10n.themeModeSystem,
+    ThemeMode.light => L10n.themeModeLight,
+    ThemeMode.dark => L10n.themeModeDark,
+  };
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeModeProvider);
@@ -42,7 +48,10 @@ class SettingsScreen extends ConsumerWidget {
             child: Column(
               children: [
                 for (final mode in ThemeMode.values)
-                  RadioListTile<ThemeMode>(title: Text(mode.name), value: mode),
+                  RadioListTile<ThemeMode>(
+                    title: Text(_labelFor(mode)),
+                    value: mode,
+                  ),
               ],
             ),
           ),

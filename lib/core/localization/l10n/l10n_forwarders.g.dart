@@ -41,6 +41,9 @@ abstract final class L10n {
   static String get settings => _tr.settings;
   static String get language => _tr.language;
   static String get themeMode => _tr.themeMode;
+  static String get themeModeSystem => _tr.themeModeSystem;
+  static String get themeModeLight => _tr.themeModeLight;
+  static String get themeModeDark => _tr.themeModeDark;
   static String get retry => _tr.retry;
   static String get fieldRequired => _tr.fieldRequired;
   static String get errorGeneric => _tr.errorGeneric;

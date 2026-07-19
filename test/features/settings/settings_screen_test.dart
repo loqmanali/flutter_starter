@@ -69,7 +69,7 @@ void main() {
   testWidgets('selecting a theme radio persists the choice', (tester) async {
     final container = await pumpScreen(tester);
 
-    await tester.tap(find.widgetWithText(RadioListTile<ThemeMode>, 'dark'));
+    await tester.tap(find.widgetWithText(RadioListTile<ThemeMode>, 'Dark'));
     await tester.pumpAndSettle();
 
     expect(container.read(themeModeProvider), ThemeMode.dark);

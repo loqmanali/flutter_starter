@@ -6,6 +6,7 @@ import 'package:flutter_starter/core/config/env.dart';
 import 'package:flutter_starter/core/di/infrastructure_providers.dart';
 import 'package:flutter_starter/core/navigation/auth_session.dart';
 import 'package:flutter_starter/core/network/api_kit_setup.dart';
+import 'package:flutter_starter/features/settings/presentation/theme_mode_provider.dart';
 import 'package:localization_kit/localization_kit.dart';
 import 'package:logging_kit/logging_kit.dart';
 import 'package:storage_kit/storage_kit.dart';
@@ -28,12 +29,31 @@ Future<void> bootstrap(String flavor) async {
 
   await AppStorage.initialize();
 
+  // Seed themeModeProvider's initial state instead of restoring it after the
+  // first frame: read the persisted mode now, while nothing has rendered
+  // yet, so build() (below) never has to reconcile away a wrong guess. See
+  // theme_mode_provider.dart for why a post-frame restore is wrong.
+  final initialThemeMode = ThemeModeNotifier.parse(
+    await AppStorage.instance.getThemeMode(),
+  );
+
   final container = ProviderContainer(
-    overrides: [appStorageProvider.overrideWithValue(AppStorage.instance)],
+    overrides: [
+      appStorageProvider.overrideWithValue(AppStorage.instance),
+      themeModeProvider.overrideWith(() => ThemeModeNotifier(initialThemeMode)),
+    ],
   );
 
   LocalizationKitRuntime.use(
     storage: _StorageBackedLocalization(AppStorage.instance),
+    // Both ARB locales this app ships (see supportedLocales), not just the
+    // kit's English-only default — otherwise a language picker built from
+    // availableLanguagesProvider would silently drop Arabic despite it
+    // being fully translated.
+    defaultLanguages: const [
+      LanguageModel(code: 'en', name: 'English', isoCode: 'en'),
+      LanguageModel(code: 'ar', name: 'العربية', isoCode: 'ar'),
+    ],
     defaultIsoCode: 'en',
     defaultApiCode: 'en',
   );
