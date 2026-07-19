@@ -56,3 +56,6 @@ app.*.map.json
 
 # Local kit development overrides
 pubspec_overrides.yaml
+
+# AI workflow artefacts — local only, never published
+docs/superpowers/
