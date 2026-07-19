@@ -4,6 +4,7 @@ import 'package:flutter_starter/app.dart';
 import 'package:flutter_starter/core/bootstrap/app_initialization_error_screen.dart';
 import 'package:flutter_starter/core/config/env.dart';
 import 'package:flutter_starter/core/di/infrastructure_providers.dart';
+import 'package:flutter_starter/core/navigation/auth_session.dart';
 import 'package:flutter_starter/core/network/api_kit_setup.dart';
 import 'package:logging_kit/logging_kit.dart';
 import 'package:storage_kit/storage_kit.dart';
@@ -26,16 +27,15 @@ Future<void> bootstrap(String flavor) async {
 
   await AppStorage.initialize();
 
+  final container = ProviderContainer(
+    overrides: [appStorageProvider.overrideWithValue(AppStorage.instance)],
+  );
+
   configureApiKit(
     storage: AppStorage.instance,
-    onLogout: () async => AppStorage.instance.clearAuthData(),
+    onLogout: () => container.read(authSessionProvider.notifier).signOut(),
     languageCode: () async => await AppStorage.instance.getLocale() ?? 'en',
   );
 
-  runApp(
-    ProviderScope(
-      overrides: [appStorageProvider.overrideWithValue(AppStorage.instance)],
-      child: const App(),
-    ),
-  );
+  runApp(UncontrolledProviderScope(container: container, child: const App()));
 }
