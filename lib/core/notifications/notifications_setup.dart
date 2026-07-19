@@ -51,7 +51,7 @@ NotifyConfig buildNotifyConfig({
 }) {
   return NotifyConfig(
     androidChannel: const AndroidChannelConfig(
-      id: 'flutter_starter_default',
+      id: 'app_default_channel',
       name: 'General',
       icon: '@mipmap/ic_launcher',
       description: 'General notifications',

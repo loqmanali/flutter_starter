@@ -7,7 +7,7 @@ void main() {
     test('declares an Android channel with a stable id', () {
       final config = buildNotifyConfig(onTapRoute: (_) {});
 
-      expect(config.androidChannel.id, 'flutter_starter_default');
+      expect(config.androidChannel.id, 'app_default_channel');
       expect(config.androidChannel.name.isNotEmpty, isTrue);
       expect(config.androidChannel.icon.isNotEmpty, isTrue);
     });
