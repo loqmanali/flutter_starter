@@ -34,21 +34,47 @@ class AuthSessionNotifier extends Notifier<AuthSession> {
 
   /// Persists a token pair and flips the session on.
   ///
-  /// Checks the write's result: a sign-in whose token can't be persisted
-  /// must not look successful. Left unchecked, the in-memory session would
-  /// say "signed in" while disk still says otherwise, and the next cold
-  /// start would silently bounce the user back to sign-in with no
-  /// diagnostic trail. Throwing here (before flipping [state]) instead
-  /// surfaces it as a real sign-in failure through the same
-  /// `AsyncValue.guard` that already wraps [onAuthenticated]'s caller.
+  /// [build] gates [isSignedIn] on the access token alone, so that's the
+  /// only write this verifies. `saveAuthTokens` bundles three independent
+  /// writes (access token, `isLoggedIn` flag, refresh token) into one
+  /// aggregate bool; a failure of the other two has no effect on whether
+  /// this session is usable and must not fail a sign-in that actually
+  /// worked. So instead of trusting that aggregate, this reads the access
+  /// token back from storage and compares it to what was just sent.
+  ///
+  /// Reads it with the async accessor, not [AppStorage.getAccessTokenSync]:
+  /// the sync cache is written unconditionally *before* the persistence
+  /// attempt, so it would report success even when the underlying write
+  /// failed — verifying nothing.
+  ///
+  /// Throwing here (before flipping [state]) surfaces the failure through
+  /// the same `AsyncValue.guard` that already wraps [onAuthenticated]'s
+  /// caller, so a sign-in whose token can't be persisted is treated as a
+  /// failed sign-in rather than a silent desync that only bites on the
+  /// next cold start.
   Future<void> onAuthenticated({
     required String accessToken,
     required String refreshToken,
   }) async {
-    final wasSaved = await ref
-        .read(appStorageProvider)
-        .saveAuthTokens(accessToken: accessToken, refreshToken: refreshToken);
-    if (!wasSaved) {
+    final storage = ref.read(appStorageProvider);
+    // ponytail: saveAuthTokens's return value is intentionally ignored here
+    // — the check below is on the access token it wrote, not its aggregate
+    // bool. `storage_kit` is read-only, so `_cachedAccessToken` is left set
+    // to the un-persisted token if this throws; see the note below.
+    await storage.saveAuthTokens(
+      accessToken: accessToken,
+      refreshToken: refreshToken,
+    );
+    final persistedAccessToken = await storage.getAccessToken();
+    if (persistedAccessToken != accessToken) {
+      // NOTE: `saveAuthTokens` sets AppStorage's in-memory
+      // `_cachedAccessToken` unconditionally, before attempting any of its
+      // writes. So at this point the sync cache still holds `accessToken`
+      // even though persistence failed and we're about to throw. It cannot
+      // be rolled back from here (that's inside read-only `storage_kit`),
+      // so `AppStorage.getAccessTokenSync()` must not be treated as ground
+      // truth after a caught failure of this method — only this provider's
+      // state (still signed out below) is authoritative.
       throw const CacheFailure(
         message:
             'Sign-in succeeded but the session could not be saved. '
