@@ -19,6 +19,13 @@ import 'package:storage_kit/storage_kit.dart';
 /// request, trusting `onRequest` to re-read the token from storage. Skip the
 /// persist step and the retried request re-attaches the stale token, which
 /// loops straight into another `401`.
+///
+/// That future `onRefreshToken` must make its HTTP call via
+/// `DioApiClient.bare()`, per api_kit's own stated intent, so the auth
+/// interceptor doesn't try to refresh while refreshing — today that's only
+/// incidentally safe because `/auth/refresh-token` sits in
+/// `ApiKitRuntime`'s default `skipRefreshEndpoints`, not because refresh
+/// calls are guaranteed to go through an interceptor-free client.
 void configureApiKit({
   required AppStorage storage,
   required Future<void> Function() onLogout,

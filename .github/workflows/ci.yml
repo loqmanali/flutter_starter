@@ -17,4 +17,8 @@ jobs:
       - run: flutter pub get
       - run: dart format --set-exit-if-changed .
       - run: flutter analyze
+      # flutter analyze does not load analysis_server_plugin plugins (riverpod_lint
+      # among them) — only `dart analyze` does. Run both: flutter analyze for the
+      # Flutter-tool-specific checks, dart analyze so riverpod_lint actually runs.
+      - run: dart analyze
       - run: flutter test

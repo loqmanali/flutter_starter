@@ -6,8 +6,13 @@ analyzer:
     - "lib/core/localization/l10n/app_localizations*.dart"
   errors:
     invalid_annotation_target: ignore
-  plugins:
-    - riverpod_lint
+
+# riverpod_lint is an analysis_server_plugin, not a custom_lint plugin: it
+# must be declared in a top-level `plugins:` block (per its own README), not
+# nested under `analyzer:`. Only `dart analyze` loads analysis_server_plugin
+# plugins — `flutter analyze` does not, see .github/workflows/ci.yml.
+plugins:
+  riverpod_lint: 3.1.4
 
 linter:
   rules:

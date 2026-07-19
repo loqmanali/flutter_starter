@@ -17,21 +17,37 @@ import 'package:storage_kit/storage_kit.dart';
 
 /// The single startup sequence, shared by every flavored entrypoint.
 ///
-/// Later tasks extend this: storage init (Task 3), api_kit (Task 6),
-/// notify_kit and force_update_gate (Task 10).
+/// Wires up, in order: env validation, storage, localization, api_kit,
+/// and push notifications (notify_kit).
 Future<void> bootstrap(String flavor) async {
   WidgetsFlutterBinding.ensureInitialized();
 
   try {
     Env.load(expectedFlavor: flavor);
   } on EnvException catch (error) {
+    // False positive: this env-failure path renders outside any provider
+    // tree on purpose — see AppInitializationErrorScreen's doc.
+    // ignore: riverpod_lint/missing_provider_scope
     runApp(AppInitializationErrorScreen(message: error.message));
     return;
   }
 
   AppLogger.info('Booting ${Env.appName} (${Env.flavor})');
 
-  await AppStorage.initialize();
+  try {
+    await AppStorage.initialize();
+  } on Object catch (error, stackTrace) {
+    AppLogger.error('Storage initialization failed', error, stackTrace);
+    // False positive: this storage-init-failure path renders outside any
+    // provider tree on purpose — see AppInitializationErrorScreen's doc.
+    // ignore: riverpod_lint/missing_provider_scope
+    runApp(
+      const AppInitializationErrorScreen(
+        message: 'Failed to initialize local storage. Please restart the app.',
+      ),
+    );
+    return;
+  }
 
   // Seed themeModeProvider's initial state instead of restoring it after the
   // first frame: read the persisted mode now, while nothing has rendered

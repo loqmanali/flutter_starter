@@ -12,7 +12,7 @@ import 'package:notify_kit/notify_kit.dart';
 /// `AppLogger.debug(...)` here would be a guaranteed no-op in every build.
 /// Use [debugPrint] instead — it needs no prior configuration, which is
 /// exactly why notify_kit's own background handler uses it too. Kept
-/// intentionally minimal — Task 10 is wiring only, not a notification
+/// intentionally minimal — this is wiring only, not a notification
 /// display/UX feature.
 @pragma('vm:entry-point')
 Future<void> notificationBackgroundHandler(RemoteMessage message) async {

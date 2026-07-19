@@ -129,25 +129,44 @@ it — just know it manages a separate concern from `.flow_deploy.json`.
 
 ### Firebase / push notifications
 
-Push notifications need native Firebase config per flavor, set up once via
-`flow flavor firebase`. A fresh clone boots fine without it — `bootstrap()` in
-`lib/app_bootstrap.dart` wraps Firebase/`NotifyKit` init in a `try`/`catch`
-and logs a warning instead of crashing — push just won't register until you
-run it.
+The Dart side is fully wired: `bootstrap()` calls `Firebase.initializeApp()`
+and `NotifyKit.init()` (see `lib/core/notifications/notifications_setup.dart`),
+and `buildNotifyConfig` sets `requestPermissionOnInit: true`. **Native setup
+is not done in this repo.** A fresh clone boots fine — Firebase/`NotifyKit`
+init is wrapped in a `try`/`catch` that logs a warning instead of crashing —
+but push will not actually arrive until you add, per flavor:
+
+- Google Services config (`google-services.json` / `GoogleService-Info.plist`)
+  and the `com.google.gms.google-services` Gradle plugin, which
+  `android/build.gradle.kts` and `android/app/build.gradle.kts` do not declare
+  today. `flow flavor firebase` (via the `flutterfire` CLI) generates and
+  wires these — but it first needs a valid `.flow_flavor.json`, which this
+  repo does not ship (see above); run `flow flavor init` first.
+- Android 13+ notification permission: `POST_NOTIFICATIONS` in
+  `android/app/src/main/AndroidManifest.xml`. Required because
+  `requestPermissionOnInit: true` asks for it at runtime, and there is no
+  permission to grant without the manifest entry. Neither `flow flavor
+  firebase` nor `flutterfire configure` adds this — you add it by hand.
+- iOS: `UIBackgroundModes` → `remote-notification` in `ios/Runner/Info.plist`,
+  plus the Push Notifications capability/entitlement (`aps-environment`),
+  added in Xcode. This repo ships no `.entitlements` file at all, and neither
+  `flutterfire configure` nor `flow` adds one.
 
 ## Adding a feature
 
 ```
 lib/features/orders/
 ├── data/
-│   ├── order.dart              # model, hand-written fromJson
-│   └── order_repository.dart   # HTTP + defensive parsing; throws Failure
+│   └── order_repository.dart   # model(s) + HTTP + defensive parsing; throws Failure
 └── presentation/
     ├── order_providers.dart    # repository provider + notifiers
     ├── order_routes.dart       # this feature's List<RouteBase>
-    ├── orders_screen.dart
-    └── widgets/
+    └── orders_screen.dart
 ```
+
+(`widgets/` is a reasonable addition once a feature has screen-specific
+widgets worth splitting out — `features/auth/`, the worked example below,
+doesn't need one yet.)
 
 Then add `...orderRoutes` to `routes:` in `lib/core/navigation/app_router.dart`.
 

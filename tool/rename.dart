@@ -117,12 +117,84 @@ Future<void> main(List<String> args) async {
   }
 
   if (display != null) {
+    _setAndroidLabel(display);
+    _setIosDisplayName(display);
     print('Set APP_NAME=$display in .env.dev and .env.production.');
   }
   print(
     'Done. Next: cp .env.dev.example .env.dev && flutter run '
     '-t lib/main_dev.dart --dart-define-from-file=.env.dev',
   );
+}
+
+/// Rewrites `android:label` in the main manifest to [display]. Debug/profile
+/// manifests carry no `android:label` (they only add the INTERNET
+/// permission), so main is the only file that needs it.
+void _setAndroidLabel(String display) {
+  const path = 'android/app/src/main/AndroidManifest.xml';
+  final file = File(path);
+  if (!file.existsSync()) {
+    print('Could not find $path. Set android:label="$display" by hand.');
+    return;
+  }
+
+  final original = file.readAsStringSync();
+  final updated = original.replaceFirst(
+    RegExp('android:label="[^"]*"'),
+    'android:label="${_escapeXml(display)}"',
+  );
+  if (updated == original) {
+    print(
+      'Could not find android:label in $path. Set it to "$display" by hand.',
+    );
+    return;
+  }
+  file.writeAsStringSync(updated);
+}
+
+/// Rewrites `CFBundleDisplayName` and `CFBundleName` in Info.plist to
+/// [display]. `change_app_package_name` only rewrites bundle identifiers, so
+/// neither key is touched anywhere else.
+void _setIosDisplayName(String display) {
+  const path = 'ios/Runner/Info.plist';
+  final file = File(path);
+  if (!file.existsSync()) {
+    print(
+      'Could not find $path. Set CFBundleDisplayName and CFBundleName to '
+      '"$display" by hand.',
+    );
+    return;
+  }
+
+  var updated = file.readAsStringSync();
+  var touched = 0;
+  for (final key in ['CFBundleDisplayName', 'CFBundleName']) {
+    final pattern = RegExp('(<key>$key</key>\\s*<string>)[^<]*(</string>)');
+    final next = updated.replaceFirstMapped(
+      pattern,
+      (match) => '${match.group(1)}${_escapeXml(display)}${match.group(2)}',
+    );
+    if (next != updated) touched++;
+    updated = next;
+  }
+
+  if (touched == 0) {
+    print(
+      'Could not find CFBundleDisplayName/CFBundleName in $path. Set both '
+      'to "$display" by hand.',
+    );
+    return;
+  }
+  file.writeAsStringSync(updated);
+}
+
+String _escapeXml(String value) {
+  return value
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&apos;');
 }
 
 bool _isRewritable(String path) {

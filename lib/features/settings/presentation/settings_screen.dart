@@ -38,6 +38,16 @@ class SettingsScreen extends ConsumerWidget {
             ),
           ),
           const Divider(),
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: WidgetKitTokens.spaceMd,
+              vertical: WidgetKitTokens.spaceXs,
+            ),
+            child: Text(
+              L10n.themeMode,
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
+          ),
           RadioGroup<ThemeMode>(
             groupValue: themeMode,
             onChanged: (selected) {

@@ -20,28 +20,25 @@ void main() {
       expect(AppTheme.dark().useMaterial3, isTrue);
     });
 
-    test(
-      'light: Material input/button radii match the registered WidgetKitTheme',
-      () {
-        _expectRadiiMatchExtension(AppTheme.light());
-      },
-    );
+    test('light: Material input/button radii and button height match the '
+        'registered WidgetKitTheme', () {
+      _expectSizingMatchesExtension(AppTheme.light());
+    });
 
-    test(
-      'dark: Material input/button radii match the registered WidgetKitTheme',
-      () {
-        _expectRadiiMatchExtension(AppTheme.dark());
-      },
-    );
+    test('dark: Material input/button radii and button height match the '
+        'registered WidgetKitTheme', () {
+      _expectSizingMatchesExtension(AppTheme.dark());
+    });
   });
 }
 
-/// Asserts that the radius `widget_kit` widgets resolve (via the registered
-/// [WidgetKitTheme]) is the same radius configured on the stock Material
-/// [InputDecorationTheme] / [FilledButtonThemeData] in [theme]. If these
-/// drift apart, a `widget_kit` input/button and a stock `TextField`/
-/// `FilledButton` render different corner radii on the same screen.
-void _expectRadiiMatchExtension(ThemeData theme) {
+/// Asserts that the radius and button height `widget_kit` widgets resolve
+/// (via the registered [WidgetKitTheme]) match what's configured on the
+/// stock Material [InputDecorationTheme] / [FilledButtonThemeData] in
+/// [theme]. If these drift apart, a `widget_kit` input/button and a stock
+/// `TextField`/`FilledButton` render different corners or heights on the
+/// same screen.
+void _expectSizingMatchesExtension(ThemeData theme) {
   final WidgetKitTheme? widgetKitTheme = theme.extension<WidgetKitTheme>();
   expect(widgetKitTheme, isNotNull);
 
@@ -49,6 +46,9 @@ void _expectRadiiMatchExtension(ThemeData theme) {
   final double? buttonRadius = _radiusOf(
     theme.filledButtonTheme.style?.shape?.resolve(<WidgetState>{}),
   );
+  final double? buttonHeight = theme.filledButtonTheme.style?.minimumSize
+      ?.resolve(<WidgetState>{})
+      ?.height;
 
   expect(
     inputRadius,
@@ -61,6 +61,12 @@ void _expectRadiiMatchExtension(ThemeData theme) {
     widgetKitTheme.buttonBorderRadius,
     reason:
         'FilledButtonThemeData radius must match WidgetKitTheme.buttonBorderRadius',
+  );
+  expect(
+    buttonHeight,
+    widgetKitTheme.buttonHeight,
+    reason:
+        'FilledButtonThemeData minimumSize height must match WidgetKitTheme.buttonHeight',
   );
 }
 

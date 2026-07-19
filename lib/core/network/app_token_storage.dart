@@ -53,7 +53,7 @@ class AppTokenStorage implements AuthTokenStorageAdapter {
 
   // Clears persisted storage only — it does not flip `authSessionProvider`.
   // `AuthInterceptor` calls this directly on an unrecoverable 401, then calls
-  // `onLogout`, which `bootstrap()` (Step 11) wires to
+  // `onLogout`, which `bootstrap()` wires to
   // `authSessionProvider.notifier.signOut()` for that reason: without it,
   // the router's redirect keeps reading a stale `isSignedIn: true`.
   @override

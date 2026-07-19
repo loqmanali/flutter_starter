@@ -12,6 +12,12 @@ abstract final class AppTheme {
   /// Change this one line to change the app's corner radius.
   static const double _cornerRadius = WidgetKitTokens.radiusMd;
 
+  /// The app's single button-height decision, for the same reason as
+  /// [_cornerRadius]: `WidgetKitTheme.buttonHeight` and stock `FilledButton`'s
+  /// `minimumSize` are bound to this one constant instead of each separately
+  /// hardcoding `WidgetKitTokens.buttonHeight`, so they cannot drift apart.
+  static const double _buttonHeight = WidgetKitTokens.buttonHeight;
+
   static ThemeData light() => _build(Brightness.light);
 
   static ThemeData dark() => _build(Brightness.dark);
@@ -27,6 +33,7 @@ abstract final class AppTheme {
     final widgetKitTheme = WidgetKitTheme.fallback.copyWith(
       inputBorderRadius: _cornerRadius,
       buttonBorderRadius: _cornerRadius,
+      buttonHeight: _buttonHeight,
     );
 
     return ThemeData(
@@ -44,7 +51,7 @@ abstract final class AppTheme {
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          minimumSize: const Size.fromHeight(WidgetKitTokens.buttonHeight),
+          minimumSize: const Size.fromHeight(_buttonHeight),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(_cornerRadius),
           ),
