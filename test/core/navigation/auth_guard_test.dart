@@ -20,9 +20,31 @@ void main() {
       expect(AuthGuard.redirect(true, RoutePaths.settings), isNull);
     });
 
-    test('guards nested protected paths, not just exact matches', () {
+    test('sends a signed-out user off a nested path under a non-public '
+        'prefix to sign-in (same branch as the exact-match case)', () {
       expect(
         AuthGuard.redirect(false, '${RoutePaths.settings}/language'),
+        RoutePaths.signIn,
+      );
+    });
+
+    test('leaves a signed-out user on a path nested under the public '
+        'sign-in prefix alone', () {
+      expect(AuthGuard.redirect(false, '${RoutePaths.signIn}/mfa'), isNull);
+    });
+
+    test('sends a signed-in user off a path nested under the public '
+        'sign-in prefix to home', () {
+      expect(
+        AuthGuard.redirect(true, '${RoutePaths.signIn}/mfa'),
+        RoutePaths.home,
+      );
+    });
+
+    test('does not treat a sign-in-prefixed sibling path as public '
+        '(prefix boundary is respected)', () {
+      expect(
+        AuthGuard.redirect(false, '${RoutePaths.signIn}-history'),
         RoutePaths.signIn,
       );
     });

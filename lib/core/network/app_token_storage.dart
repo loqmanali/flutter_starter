@@ -19,9 +19,14 @@ class AppTokenStorage implements AuthTokenStorageAdapter {
   /// [AppStorage.saveAccessToken]) — never via
   /// `AppStorage.instance.setString(StorageKeys.accessToken, ...)` directly.
   /// Only [AppStorage.saveAuthTokens]/`saveAccessToken` also update
-  /// [AppStorage.getAccessTokenSync]'s in-memory cache, which go_router's
-  /// auth-gate redirect reads synchronously. Bypassing this path desyncs
-  /// that cache from persisted storage and silently breaks the auth gate.
+  /// [AppStorage.getAccessTokenSync]'s in-memory cache. `AuthSessionNotifier.
+  /// build()` reads that cache synchronously, but only once, when the
+  /// notifier is first constructed — go_router's auth-gate redirect then just
+  /// reads the resulting cached `isSignedIn` from `authSessionProvider`. That
+  /// one-time read must see a value written earlier in the same process
+  /// (`AppStorage.initialize()` pre-warms it at cold start), so bypassing
+  /// this path desyncs the cache from persisted storage and silently breaks
+  /// the auth gate.
   @override
   Future<void> saveTokens({
     required String accessToken,
