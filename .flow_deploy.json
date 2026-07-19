@@ -1,0 +1,51 @@
+{
+  "skip_version_increment": true,
+  "android": {
+    "json_key_path": "(Required for fastlane Play Store publishing)",
+    "changelog": {
+      "en-US": ""
+    },
+    "firebase_app_distribution": {
+      "app_id": "(Required for firebase provider)",
+      "groups": "",
+      "testers": "",
+      "release_notes": ""
+    }
+  },
+  "ios": {
+    "app_store_connect": {
+      "key_id": "(Required for fastlane App Store publishing)",
+      "issuer_id": "(Required for fastlane App Store publishing)",
+      "key_filepath": "(Required for fastlane App Store publishing)"
+    },
+    "changelog": {
+      "en-US": ""
+    },
+    "firebase_app_distribution": {
+      "app_id": "(Required for firebase provider)",
+      "groups": "",
+      "testers": "",
+      "release_notes": ""
+    }
+  },
+  "profiles": {
+    "dev": {
+      "mode": "beta",
+      "provider": "firebase",
+      "platform": "all",
+      "build": {
+        "flavor": "dev",
+        "target": "lib/main_dev.dart"
+      }
+    },
+    "production": {
+      "mode": "update",
+      "provider": "fastlane",
+      "platform": "all",
+      "build": {
+        "flavor": "production",
+        "target": "lib/main_production.dart"
+      }
+    }
+  }
+}

@@ -10,8 +10,8 @@ app. Wiring lives here; capability lives in the kits.
 gh repo create my_app --template loqmanali/flutter_starter --private --clone
 cd my_app
 dart run tool/rename.dart --name my_app --org com.acme --display "My App"
-cp .env.example .env          # then edit BASE_URL
-flow flavor run dev           # install the flow CLI yourself; this repo doesn't vendor it
+cp .env.dev.example .env.dev          # then edit BASE_URL
+flutter run -t lib/main_dev.dart --dart-define-from-file=.env.dev
 ```
 
 `tool/rename.dart` rewrites every `package:flutter_starter` reference and the
@@ -19,6 +19,11 @@ pubspec `name:` field, then renames the Android/iOS bundle id via
 `change_app_package_name` (a dev-only dependency). If that step fails — e.g.
 before your first `flutter pub get` — it prints the exact files to edit by
 hand instead of failing silently.
+
+Plain `flutter run` (no `-t`) deliberately fails: `lib/main.dart` is an
+unflavored guard that writes a usage message to stderr and exits `64`. Always
+launch a flavored entrypoint, either directly (above) or through `flow` (see
+below).
 
 ## The boundary rule
 
@@ -43,7 +48,92 @@ stays on the git ref.
 | Sizing | `WidgetKitTokens` and `WidgetKitBreakpoints`. No `flutter_screenutil`. App-owned brand/status colours live in `lib/core/theme/app_tokens.dart`. |
 | Routing | Per-feature `*_routes.dart` composed in `app_router.dart`. `AuthGuard.redirect` is pure and unit-tested without a router, a widget tree, or Riverpod. |
 | Strings | Edit `.arb`, then run **`dart run tool/update_l10n.dart`** — running only `flutter gen-l10n` leaves the `L10n` forwarders stale. A test asserts the ARB key count matches the forwarder count, so a missed regen fails the gate. `L10n.foo` works without a `BuildContext`. |
-| Flavors | `flow flavor run\|build <flavor>`, configured by `.flow_flavor.json`. This repo vendors no build scripts. `.env` is git-ignored and never a Flutter asset — config is compiled in via `--dart-define-from-file`, not bundled where it could be unzipped out of a release APK. |
+| Flavors | Two entrypoints, `lib/main_dev.dart` / `lib/main_production.dart`, each calling `bootstrap(flavor)`, which validates `BUILD_ENV` against the entrypoint (`lib/core/config/env.dart`). Config is compiled in via `--dart-define-from-file`, never bundled where it could be unzipped out of a release APK. Releases are built through the `flow` CLI's **deploy** subsystem (`.flow_deploy.json`), not its flavor subsystem — see "Flavors and builds" below. |
+
+## Flavors and builds
+
+This repo has no native Android product flavors or iOS schemes — only two
+Dart-level flavors, distinguished by entrypoint (`lib/main_dev.dart` /
+`lib/main_production.dart`) and by `--dart-define-from-file`. `lib/main.dart`
+(no flavor) always exits `64`.
+
+### Local development
+
+Run the app directly with Flutter, pointing at the flavor's entrypoint and
+env file:
+
+```bash
+flutter run -t lib/main_dev.dart --dart-define-from-file=.env.dev
+```
+
+The flavor-scoped equivalent that a real deploy would use adds `--flavor`:
+
+```bash
+flutter run --flavor dev -t lib/main_dev.dart --dart-define-from-file=.env.dev
+```
+
+**Verified caveat:** `--flavor` requires a matching native Android product
+flavor / iOS scheme, and this repo ships none (see `.flow_flavor.json`
+below) — `flutter build apk --flavor dev ...` fails today with *"The
+android/app/build.gradle.kts file does not define any custom product
+flavors. You cannot use the --flavor option."* Until you add native flavors
+(`flow flavor init`), drop `--flavor` — the entrypoint and dart-defines above
+are all this app actually reads.
+
+### Building a release with `flow deploy`
+
+Install `flow` (the bare `dart pub global activate flow` name resolves to an
+unrelated pub.dev package — install from git):
+
+```bash
+dart pub global activate --source git https://github.com/loqmanali/flow.git
+```
+
+`.flow_deploy.json` declares a `dev` and a `production` profile, each mapped
+to its build target and (via the `.env.<flavor>` convention) its env file:
+
+```bash
+flow deploy run dev          # or the shortcut: flow dev
+flow deploy run production   # or: flow production
+```
+
+This resolves to `flutter build ... --flavor <profile> --target
+lib/main_<profile>.dart --dart-define-from-file=.env.<profile>` — confirmed
+directly against `BuildService.flavorBuildArguments` for both profiles with
+real `.env.dev` / `.env.production` files present. `flow deploy` always runs
+a **build** (apk/appbundle/ipa), never `flutter run`; for the local edit-run
+loop, use the raw command above instead.
+
+**What's verified vs. not:** config loading, profile resolution (flavor,
+target, provider, mode), and dart-define-file resolution are all confirmed
+against the real `flow` CLI (`flow deploy run dev|production --skip-build`).
+Actually publishing (`flow deploy beta|update`, or a full unabridged `flow
+deploy run <profile>`) additionally needs the `ios.app_store_connect` /
+`*.firebase_app_distribution` placeholders in `.flow_deploy.json` replaced
+with real credentials, and — for a real device artifact — native flavors (see
+above). Neither was exercised end-to-end here; both fail cleanly and
+legibly (not silently) on the placeholder values shipped in this repo.
+
+### `.flow_flavor.json`: removed
+
+The version this repo previously shipped didn't match `flow`'s real schema
+(`flavors` must be a `List<String>`, plus several other required root keys —
+see `config_validator.dart` in `flow`'s source) and would throw immediately.
+It's deleted rather than fixed: `flow flavor`'s config bakes flavor values into
+a generated Dart file at `app_config_path`, which is a different, competing
+mechanism to this project's actual design (`Env` + `--dart-define-from-file`,
+values never committed). If you want real native Android/iOS flavor
+scaffolding (per-flavor app icons, bundle-id suffixes, Xcode schemes), run
+`flow flavor init` to generate a fresh, valid `.flow_flavor.json` and apply
+it — just know it manages a separate concern from `.flow_deploy.json`.
+
+### Firebase / push notifications
+
+Push notifications need native Firebase config per flavor, set up once via
+`flow flavor firebase`. A fresh clone boots fine without it — `bootstrap()` in
+`lib/app_bootstrap.dart` wraps Firebase/`NotifyKit` init in a `try`/`catch`
+and logs a warning instead of crashing — push just won't register until you
+run it.
 
 ## Adding a feature
 

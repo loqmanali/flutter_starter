@@ -47,9 +47,11 @@ app.*.map.json
 .superpowers/
 
 # Environment — never committed, never a Flutter asset
+# Real per-flavor files follow flow's `.env.<flavor>` convention (`.env.dev`,
+# `.env.production`); only the checked-in `.example` templates are tracked.
 .env
 .env.*
-!.env.example
+!.env.dev.example
 !.env.production.example
 
 # Local kit development overrides

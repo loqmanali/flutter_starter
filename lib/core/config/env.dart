@@ -49,7 +49,8 @@ abstract final class Env {
     if (flavor != expectedFlavor) {
       throw EnvException(
         'BUILD_ENV is "$flavor" but this entrypoint expects "$expectedFlavor". '
-        'Launch with: flow flavor run $expectedFlavor',
+        'Launch with: flutter run -t lib/main_$expectedFlavor.dart '
+        '--dart-define-from-file=.env.$expectedFlavor',
       );
     }
     if (baseUrl.isEmpty) {

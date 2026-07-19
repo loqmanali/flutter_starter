@@ -33,20 +33,13 @@ void main() {
       );
     });
 
-    test('is case-sensitive and idempotent', () {
-      const source = 'name: flutter_starter';
-      final once = rewritePackageReferences(
-        source,
-        from: 'flutter_starter',
-        to: 'my_app',
-      );
-      final twice = rewritePackageReferences(
-        once,
-        from: 'flutter_starter',
-        to: 'my_app',
-      );
+    test('is case-sensitive', () {
+      const source = 'const Flutter_Starter = 1; const FLUTTER_STARTER = 2;';
 
-      expect(once, twice);
+      expect(
+        rewritePackageReferences(source, from: 'flutter_starter', to: 'my_app'),
+        source,
+      );
     });
   });
 }

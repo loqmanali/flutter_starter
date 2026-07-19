@@ -14,6 +14,13 @@ String rewritePackageReferences(
   return source.replaceAll(pattern, to);
 }
 
+// Deliberately self-rewriting: this file is itself scanned and rewritten by
+// the loop below (it is a .dart file under the project root), so after a
+// rename `_oldName` becomes the project's new current name. That is what
+// makes a *second* rename work correctly from whatever name the project is
+// on now, instead of forever rewriting from "flutter_starter". Excluded from
+// this behavior: test/tool/rename_test.dart (see _isRewritable) — its
+// fixtures need a fixed "flutter_starter" to stay meaningful.
 const _oldName = 'flutter_starter';
 
 Future<void> main(List<String> args) async {
@@ -94,6 +101,13 @@ Future<void> main(List<String> args) async {
     ], runInShell: true);
     stdout.write(fix.stdout);
     stderr.write(fix.stderr);
+    if (fix.exitCode != 0) {
+      print(
+        'dart fix --apply --code=directives_ordering exited '
+        '${fix.exitCode}. Run it yourself and check for import-order issues '
+        'with `flutter analyze`.',
+      );
+    }
   } else {
     print(
       'flutter pub get failed, so import ordering was not auto-fixed. Run '
@@ -103,14 +117,22 @@ Future<void> main(List<String> args) async {
   }
 
   if (display != null) {
-    print('Set APP_NAME=$display in .env and .env.production.');
+    print('Set APP_NAME=$display in .env.dev and .env.production.');
   }
-  print('Done. Next: cp .env.example .env && flow flavor run dev');
+  print(
+    'Done. Next: cp .env.dev.example .env.dev && flutter run '
+    '-t lib/main_dev.dart --dart-define-from-file=.env.dev',
+  );
 }
 
 bool _isRewritable(String path) {
   if (path.contains('/.git/') || path.contains('/build/')) return false;
   if (path.contains('/.dart_tool/')) return false;
+  // Its fixtures use 'flutter_starter' as a fixed, generic "old name" to
+  // rewrite from — not a reference to *this* project's current name. Letting
+  // the loop rewrite them would replace that literal on every run and leave
+  // the "rewrites package imports" style tests exercising a no-op.
+  if (path.endsWith('/test/tool/rename_test.dart')) return false;
   return path.endsWith('.dart') ||
       path.endsWith('.yaml') ||
       path.endsWith('.md');
