@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_starter/app.dart';
 import 'package:flutter_starter/core/bootstrap/app_initialization_error_screen.dart';
 import 'package:flutter_starter/core/config/env.dart';
+import 'package:flutter_starter/core/di/infrastructure_providers.dart';
 import 'package:logging_kit/logging_kit.dart';
+import 'package:storage_kit/storage_kit.dart';
 
 /// The single startup sequence, shared by every flavored entrypoint.
 ///
@@ -20,5 +22,13 @@ Future<void> bootstrap(String flavor) async {
   }
 
   AppLogger.info('Booting ${Env.appName} (${Env.flavor})');
-  runApp(const ProviderScope(child: App()));
+
+  await AppStorage.initialize();
+
+  runApp(
+    ProviderScope(
+      overrides: [appStorageProvider.overrideWithValue(AppStorage.instance)],
+      child: const App(),
+    ),
+  );
 }
