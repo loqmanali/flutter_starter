@@ -19,22 +19,20 @@ Future<void> notificationBackgroundHandler(RemoteMessage message) async {
   debugPrint('Background message: ${message.messageId}');
 }
 
-// KNOWN UPSTREAM BUG in notify_kit (vendored, read-only — cannot be fixed
-// here): `NotifyKit.init()` sets its private `_initialized` flag to `true`
-// BEFORE awaiting `_local.init(...)` and `_fcm.init(...)` — the two calls
-// that can actually throw. If the first call to `NotifyKit.init()` throws
-// partway through, every later call to it silently no-ops forever
-// ("init() already called — ignoring"): the subscriptions never got
-// created, and there is no error signal to react to.
+// notify_kit v1.1.5 fixed a bug where `NotifyKit.init()` latched its
+// private `_initialized` flag to `true` before awaiting the fallible
+// `_local.init(...)`/`_fcm.init(...)` calls, so a first call that threw
+// permanently wedged every later call into a silent no-op ("init() already
+// called — ignoring") with no error signal. It now only latches on genuine
+// success, and a concurrent second call awaits the same in-flight attempt
+// instead of racing it.
 //
-// Harmless as wired today — `bootstrap()` calls `NotifyKit.init()` exactly
-// once, inside a try/catch that only logs and never retries (see
-// app_bootstrap.dart). But it poisons the retry-after-failure pattern that
-// `NotifyKit.registerDevice()`'s own doc comment recommends ("call this
-// after login/profile changes"): a second `NotifyKit.init()` call made to
-// recover from a first failed one will not actually initialize anything.
-// Anyone adding device registration or resume/retry logic here must not
-// assume calling `NotifyKit.init()` again can repair a failed first call.
+// `bootstrap()` still calls `NotifyKit.init()` exactly once, inside a
+// try/catch that only logs (see app_bootstrap.dart). With the fix, device
+// registration or resume/retry logic added later can safely call
+// `NotifyKit.init()` again to genuinely retry after a failed first attempt,
+// per `NotifyKit.registerDevice()`'s own doc comment ("call this after
+// login/profile changes").
 //
 /// Builds the notify_kit configuration.
 ///

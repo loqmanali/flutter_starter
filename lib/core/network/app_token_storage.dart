@@ -40,10 +40,11 @@ class AppTokenStorage implements AuthTokenStorageAdapter {
       // The adapters underneath AppStorage (SharedPrefsAdapter, HiveAdapter)
       // catch every exception internally and return false instead of
       // throwing — this warning is the only failure signal that exists.
-      // AppStorage's in-memory access-token cache is already updated by now
-      // (saveAuthTokens sets it before attempting the write), so a failed
-      // write here means the app can look logged in until relaunch, when the
-      // stale/missing persisted token forces an unexplained logout.
+      // storage_kit rolls its in-memory access-token cache back to the
+      // previous value when the write fails (it no longer sets the cache
+      // ahead of the write), so this doesn't desync `getAccessTokenSync()`
+      // from what's persisted — it's just a diagnostic for an otherwise
+      // silent storage failure.
       AppLogger.warning(
         'AppTokenStorage.saveTokens: AppStorage.saveAuthTokens failed to '
         'persist the new access/refresh token pair.',

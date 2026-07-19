@@ -53,11 +53,11 @@ packages:
     dependency: "direct main"
     description:
       path: api_kit
-      ref: "v1.1.4"
-      resolved-ref: "74697acb87a60114c9d8388f188e932b0abcd256"
+      ref: "v1.1.5"
+      resolved-ref: b88346657129178ec9b918bbb32d5f67158a5634
       url: "https://github.com/loqmanali/flutter_kits.git"
     source: git
-    version: "1.0.0"
+    version: "1.0.1"
   args:
     dependency: transitive
     description:
@@ -482,8 +482,8 @@ packages:
     dependency: "direct main"
     description:
       path: force_update_gate
-      ref: "v1.1.4"
-      resolved-ref: "74697acb87a60114c9d8388f188e932b0abcd256"
+      ref: "v1.1.5"
+      resolved-ref: b88346657129178ec9b918bbb32d5f67158a5634
       url: "https://github.com/loqmanali/flutter_kits.git"
     source: git
     version: "0.2.0"
@@ -667,8 +667,8 @@ packages:
     dependency: "direct main"
     description:
       path: localization_kit
-      ref: "v1.1.4"
-      resolved-ref: "74697acb87a60114c9d8388f188e932b0abcd256"
+      ref: "v1.1.5"
+      resolved-ref: b88346657129178ec9b918bbb32d5f67158a5634
       url: "https://github.com/loqmanali/flutter_kits.git"
     source: git
     version: "1.0.0"
@@ -684,8 +684,8 @@ packages:
     dependency: "direct main"
     description:
       path: logging_kit
-      ref: "v1.1.4"
-      resolved-ref: "74697acb87a60114c9d8388f188e932b0abcd256"
+      ref: "v1.1.5"
+      resolved-ref: b88346657129178ec9b918bbb32d5f67158a5634
       url: "https://github.com/loqmanali/flutter_kits.git"
     source: git
     version: "0.1.0"
@@ -725,8 +725,8 @@ packages:
     dependency: "direct main"
     description:
       path: navigation_kit
-      ref: "v1.1.4"
-      resolved-ref: "74697acb87a60114c9d8388f188e932b0abcd256"
+      ref: "v1.1.5"
+      resolved-ref: b88346657129178ec9b918bbb32d5f67158a5634
       url: "https://github.com/loqmanali/flutter_kits.git"
     source: git
     version: "1.0.0"
@@ -742,11 +742,11 @@ packages:
     dependency: "direct main"
     description:
       path: notify_kit
-      ref: "v1.1.4"
-      resolved-ref: "74697acb87a60114c9d8388f188e932b0abcd256"
+      ref: "v1.1.5"
+      resolved-ref: b88346657129178ec9b918bbb32d5f67158a5634
       url: "https://github.com/loqmanali/flutter_kits.git"
     source: git
-    version: "0.1.0"
+    version: "0.1.1"
   objective_c:
     dependency: transitive
     description:
@@ -1140,11 +1140,11 @@ packages:
     dependency: "direct main"
     description:
       path: storage_kit
-      ref: "v1.1.4"
-      resolved-ref: "74697acb87a60114c9d8388f188e932b0abcd256"
+      ref: "v1.1.5"
+      resolved-ref: b88346657129178ec9b918bbb32d5f67158a5634
       url: "https://github.com/loqmanali/flutter_kits.git"
     source: git
-    version: "1.0.0"
+    version: "1.0.1"
   stream_channel:
     dependency: transitive
     description:
@@ -1397,8 +1397,8 @@ packages:
     dependency: "direct main"
     description:
       path: widget_kit
-      ref: "v1.1.4"
-      resolved-ref: "74697acb87a60114c9d8388f188e932b0abcd256"
+      ref: "v1.1.5"
+      resolved-ref: b88346657129178ec9b918bbb32d5f67158a5634
       url: "https://github.com/loqmanali/flutter_kits.git"
     source: git
     version: "1.0.0"

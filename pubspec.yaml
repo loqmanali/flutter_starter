@@ -21,21 +21,21 @@ dependencies:
   firebase_core: ^3.12.1
 
   api_kit:
-    git: { url: https://github.com/loqmanali/flutter_kits.git, path: api_kit, ref: v1.1.4 }
+    git: { url: https://github.com/loqmanali/flutter_kits.git, path: api_kit, ref: v1.1.5 }
   storage_kit:
-    git: { url: https://github.com/loqmanali/flutter_kits.git, path: storage_kit, ref: v1.1.4 }
+    git: { url: https://github.com/loqmanali/flutter_kits.git, path: storage_kit, ref: v1.1.5 }
   logging_kit:
-    git: { url: https://github.com/loqmanali/flutter_kits.git, path: logging_kit, ref: v1.1.4 }
+    git: { url: https://github.com/loqmanali/flutter_kits.git, path: logging_kit, ref: v1.1.5 }
   widget_kit:
-    git: { url: https://github.com/loqmanali/flutter_kits.git, path: widget_kit, ref: v1.1.4 }
+    git: { url: https://github.com/loqmanali/flutter_kits.git, path: widget_kit, ref: v1.1.5 }
   localization_kit:
-    git: { url: https://github.com/loqmanali/flutter_kits.git, path: localization_kit, ref: v1.1.4 }
+    git: { url: https://github.com/loqmanali/flutter_kits.git, path: localization_kit, ref: v1.1.5 }
   navigation_kit:
-    git: { url: https://github.com/loqmanali/flutter_kits.git, path: navigation_kit, ref: v1.1.4 }
+    git: { url: https://github.com/loqmanali/flutter_kits.git, path: navigation_kit, ref: v1.1.5 }
   notify_kit:
-    git: { url: https://github.com/loqmanali/flutter_kits.git, path: notify_kit, ref: v1.1.4 }
+    git: { url: https://github.com/loqmanali/flutter_kits.git, path: notify_kit, ref: v1.1.5 }
   force_update_gate:
-    git: { url: https://github.com/loqmanali/flutter_kits.git, path: force_update_gate, ref: v1.1.4 }
+    git: { url: https://github.com/loqmanali/flutter_kits.git, path: force_update_gate, ref: v1.1.5 }
 
 dev_dependencies:
   flutter_test:
