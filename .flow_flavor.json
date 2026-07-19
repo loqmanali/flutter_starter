@@ -1,0 +1,12 @@
+{
+  "flavors": {
+    "dev": {
+      "envFile": ".env",
+      "target": "lib/main_dev.dart"
+    },
+    "production": {
+      "envFile": ".env.production",
+      "target": "lib/main_production.dart"
+    }
+  }
+}
