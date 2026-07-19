@@ -29,9 +29,9 @@ below).
 
 **The template owns wiring. The kits own capability.** If code could serve two
 apps, it belongs in `flutter_kits`, not here. Kits are pinned to one git tag
-(`v1.1.4` as of this writing) via a `git:`/`path:` dependency in
+(`v1.1.5` as of this writing) via a `git:`/`path:` dependency in
 `pubspec.yaml`; bump it deliberately, never float the ref. Bumping a kit can
-raise its own transitive requirements — e.g. `force_update_gate@v1.1.4` needs
+raise its own transitive requirements — e.g. `force_update_gate` needs
 `package_info_plus: ^9.0.0`, which is why this pubspec pins that too.
 
 For local kit development, create a git-ignored `pubspec_overrides.yaml` with
