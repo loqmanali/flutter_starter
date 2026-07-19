@@ -7,6 +7,7 @@ import 'package:flutter_starter/core/localization/localization.dart';
 import 'package:flutter_starter/core/navigation/app_router.dart';
 import 'package:flutter_starter/core/theme/app_theme.dart';
 import 'package:flutter_starter/features/settings/presentation/theme_mode_provider.dart';
+import 'package:force_update_gate/force_update_gate.dart';
 import 'package:localization_kit/localization_kit.dart';
 
 /// The app's single widget tree, built under the [UncontrolledProviderScope]
@@ -38,7 +39,14 @@ class App extends ConsumerWidget {
         L10n.init(context);
         return Directionality(
           textDirection: context.textDirection,
-          child: child ?? const SizedBox.shrink(),
+          child: ForceUpdateGate(
+            config: ForceUpdateConfig(
+              labels: context.isArabic
+                  ? ForceUpdateLabels.ar()
+                  : ForceUpdateLabels.en(),
+            ),
+            child: child ?? const SizedBox.shrink(),
+          ),
         );
       },
     );
